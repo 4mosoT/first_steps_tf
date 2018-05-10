@@ -10,20 +10,28 @@ print(housing.data.shape)
 housing_data_plus_bias = np.c_[np.ones((m, 1)), housing.data]
 print(housing_data_plus_bias.shape)
 
-scaler = sklearn.preprocessing.StandardScaler()
-normalized_data = scaler.fit_transform(housing_data_plus_bias)
+housing_data_plus_bias = sklearn.preprocessing.StandardScaler().fit_transform(housing_data_plus_bias)
 
-n_epochs = 2000
-learning_rate = 0.1
+n_epochs = 1000
+learning_rate = 0.01
 
-X = tf.constant(normalized_data, dtype=tf.float32, name="X")
+X = tf.constant(housing_data_plus_bias, dtype=tf.float32, name="X")
 y = tf.constant(housing.target.reshape(-1, 1), dtype=tf.float32, name="y")
 theta = tf.Variable(tf.random_uniform([n + 1, 1], -1.0, 1.0), name="theta")
 y_pred = tf.matmul(X, theta, name="predictions")
 error = y_pred - y
 mse = tf.reduce_mean(tf.square(error), name="mse")
-gradients = 2 / m * tf.matmul(tf.transpose(X), error)
-training_op = tf.assign(theta, theta - learning_rate * gradients)
+
+#Manual gradients
+#gradients = 2 / m * tf.matmul(tf.transpose(X), error)
+
+#Autodiff gradients
+#gradients = tf.gradients(mse, [theta])[0]
+#training_op = tf.assign(theta, theta - learning_rate * gradients)
+
+#Using optimizer
+optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate)
+training_op = optimizer.minimize(mse)
 
 init = tf.global_variables_initializer()
 
